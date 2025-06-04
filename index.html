@@ -30,11 +30,12 @@
       width: 100px;
       height: 100px;
       border: 2px solid #f0f0f0;
+      background: transparent;
     }
-    .wizard.idle { background: #444; }
-    .wizard.casting { background: #b00; }
-    .wizard.blocking { background: #06b; }
-    .wizard.drawing { background: #0b0; }
+    .wizard.idle { }
+    .wizard.casting { }
+    .wizard.blocking { }
+    .wizard.drawing { }
 
     .spell {
       position: absolute;
@@ -88,11 +89,20 @@
   <div class="status" id="mana-status"></div>
   <div class="status" id="countdown"></div>
   <div class="game-log" id="game-log"></div>
-  <button onclick="startRound()">Start Next Round</button>
+  <button id="start-button" onclick="startRound()">Start Round (Space)</button>
 
   <script>
     let mana = { p1: 1, p2: 1 };
     let actions = { p1: 'Block', p2: 'Block' };
+    let roundActive = false;
+    let gameOver = false;
+
+    document.getElementById('start-button').addEventListener('click', startRound);
+    window.addEventListener('keydown', (e) => {
+      if (e.code === 'Space' && !roundActive && !gameOver) {
+        startRound();
+      }
+    });
 
     function log(message) {
       const logDiv = document.getElementById('game-log');
@@ -104,9 +114,38 @@
       document.getElementById('mana-status').textContent = `Player 1 Mana: ${mana.p1} | Player 2 Mana: ${mana.p2}`;
     }
 
+    function drawWizard(id, state) {
+      const canvas = document.getElementById(id);
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      let color = id === 'wizard1' ? '#9c27b0' : '#3f51b5';
+      if (state === 'casting') color = '#b00';
+      else if (state === 'blocking') color = '#06b';
+      else if (state === 'drawing') color = '#0b0';
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.moveTo(50, 30);
+      ctx.lineTo(20, 90);
+      ctx.lineTo(80, 90);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = '#ffe0bd';
+      ctx.beginPath();
+      ctx.arc(50, 20, 10, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#000';
+      ctx.beginPath();
+      ctx.moveTo(50, 5);
+      ctx.lineTo(30, 30);
+      ctx.lineTo(70, 30);
+      ctx.closePath();
+      ctx.fill();
+    }
+
     function setWizardState(player, state) {
       const id = player === 'p1' ? 'wizard1' : 'wizard2';
       document.getElementById(id).className = `wizard ${state}`;
+      drawWizard(id, state);
     }
 
     function spawnSpell(player, isKamehameha) {
@@ -119,7 +158,35 @@
       spell.addEventListener('animationend', () => spell.remove());
     }
 
+    function showWinner(player) {
+      const overlay = document.createElement('div');
+      overlay.style.position = 'fixed';
+      overlay.style.top = 0;
+      overlay.style.left = 0;
+      overlay.style.width = '100%';
+      overlay.style.height = '100%';
+      overlay.style.background = 'rgba(0,0,0,0.8)';
+      overlay.style.display = 'flex';
+      overlay.style.flexDirection = 'column';
+      overlay.style.alignItems = 'center';
+      overlay.style.justifyContent = 'center';
+      overlay.style.color = '#fff';
+      const title = document.createElement('h1');
+      title.textContent = player === 'p1' ? 'Player 1 Wins!' : 'Player 2 Wins!';
+      overlay.appendChild(title);
+      const canvas = document.createElement('canvas');
+      canvas.width = 100;
+      canvas.height = 100;
+      overlay.appendChild(canvas);
+      document.body.appendChild(overlay);
+      canvas.id = 'winner';
+      drawWizard('winner', 'idle');
+    }
+
     function startRound() {
+      if (roundActive || gameOver) return;
+      roundActive = true;
+      document.getElementById('start-button').disabled = true;
       actions = { p1: 'Block', p2: 'Block' }; // default if no input
       setWizardState('p1', 'idle');
       setWizardState('p2', 'idle');
@@ -193,8 +260,17 @@
       log(result);
       updateManaStatus();
       document.getElementById('countdown').textContent = '';
+      roundActive = false;
+      if (result.includes('wins')) {
+        gameOver = true;
+        showWinner(result.includes('Player 1') ? 'p1' : 'p2');
+      } else {
+        document.getElementById('start-button').disabled = false;
+      }
     }
 
+    drawWizard('wizard1', 'idle');
+    drawWizard('wizard2', 'idle');
     updateManaStatus();
   </script>
 </body>

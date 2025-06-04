@@ -11,3 +11,5 @@ Players tap twice on their lap, (on web can be a 3-2-1 countdown), then choose  
 Logistics: Each countdown will be followed by a short window for player decisions (key presses). If no key press is logged for a player, or an illegal key is pressed, the player defaults to a Block. IF two players cast a spell at the same time, the spells "cancel out" and the game continues.
 
 The game is over when one player casts a spell at their opponent while the opponent is drawing mana. Also, a Kamehameha Wave defeats any opposing action (including the block and a standard spell cast).
+
+Press the **Space bar** (or the on-screen button) to start each round. The button and space bar are disabled until the round finishes. When a player wins, a full screen overlay displays the winning wizard.
