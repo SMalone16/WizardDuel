@@ -17,6 +17,49 @@
     h1 {
       margin-bottom: 20px;
     }
+    #wizards {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 80%;
+      height: 120px;
+      position: relative;
+      margin-bottom: 20px;
+    }
+    .wizard {
+      width: 100px;
+      height: 100px;
+      border: 2px solid #f0f0f0;
+    }
+    .wizard.idle { background: #444; }
+    .wizard.casting { background: #b00; }
+    .wizard.blocking { background: #06b; }
+    .wizard.drawing { background: #0b0; }
+
+    .spell {
+      position: absolute;
+      top: 40px;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: yellow;
+      pointer-events: none;
+    }
+    .spell.kamehameha {
+      width: 40px;
+      height: 40px;
+      background: cyan;
+    }
+    @keyframes spell-right {
+      from { left: 110px; }
+      to { left: calc(100% - 120px); }
+    }
+    @keyframes spell-left {
+      from { left: calc(100% - 120px); }
+      to { left: 110px; }
+    }
+    .spell.move-right { animation: spell-right 1s linear forwards; }
+    .spell.move-left { animation: spell-left 1s linear forwards; }
     .game-log {
       width: 80%;
       max-height: 300px;
@@ -38,6 +81,10 @@
 </head>
 <body>
   <h1>Wizard Duel</h1>
+  <div id="wizards">
+    <canvas id="wizard1" class="wizard idle" width="100" height="100"></canvas>
+    <canvas id="wizard2" class="wizard idle" width="100" height="100"></canvas>
+  </div>
   <div class="status" id="mana-status"></div>
   <div class="status" id="countdown"></div>
   <div class="game-log" id="game-log"></div>
@@ -57,8 +104,25 @@
       document.getElementById('mana-status').textContent = `Player 1 Mana: ${mana.p1} | Player 2 Mana: ${mana.p2}`;
     }
 
+    function setWizardState(player, state) {
+      const id = player === 'p1' ? 'wizard1' : 'wizard2';
+      document.getElementById(id).className = `wizard ${state}`;
+    }
+
+    function spawnSpell(player, isKamehameha) {
+      const container = document.getElementById('wizards');
+      const spell = document.createElement('div');
+      spell.classList.add('spell');
+      if (isKamehameha) spell.classList.add('kamehameha');
+      spell.classList.add(player === 'p1' ? 'move-right' : 'move-left');
+      container.appendChild(spell);
+      spell.addEventListener('animationend', () => spell.remove());
+    }
+
     function startRound() {
       actions = { p1: 'Block', p2: 'Block' }; // default if no input
+      setWizardState('p1', 'idle');
+      setWizardState('p2', 'idle');
       document.getElementById('countdown').textContent = '3...';
       setTimeout(() => document.getElementById('countdown').textContent = '2...', 500);
       setTimeout(() => document.getElementById('countdown').textContent = '1...', 1000);
@@ -74,21 +138,32 @@
 
     function handleKey(e) {
       switch(e.key) {
-        case 'w': actions.p1 = 'Draw'; break;
-        case 's': actions.p1 = 'Block'; break;
-        case 'd': if (mana.p1 > 0) { actions.p1 = 'Cast'; } break;
-        case 'a': if (mana.p1 >= 4) { actions.p1 = 'Kamehameha'; } break;
+        case 'w': actions.p1 = 'Draw'; setWizardState('p1','drawing'); break;
+        case 's': actions.p1 = 'Block'; setWizardState('p1','blocking'); break;
+        case 'd': if (mana.p1 > 0) { actions.p1 = 'Cast'; setWizardState('p1','casting'); } break;
+        case 'a': if (mana.p1 >= 4) { actions.p1 = 'Kamehameha'; setWizardState('p1','casting'); } break;
 
-        case 'ArrowUp': actions.p2 = 'Draw'; break;
-        case 'ArrowDown': actions.p2 = 'Block'; break;
-        case 'ArrowLeft': if (mana.p2 > 0) { actions.p2 = 'Cast'; } break;
-        case 'ArrowRight': if (mana.p2 >= 4) { actions.p2 = 'Kamehameha'; } break;
+        case 'ArrowUp': actions.p2 = 'Draw'; setWizardState('p2','drawing'); break;
+        case 'ArrowDown': actions.p2 = 'Block'; setWizardState('p2','blocking'); break;
+        case 'ArrowLeft': if (mana.p2 > 0) { actions.p2 = 'Cast'; setWizardState('p2','casting'); } break;
+        case 'ArrowRight': if (mana.p2 >= 4) { actions.p2 = 'Kamehameha'; setWizardState('p2','casting'); } break;
       }
     }
 
     function resolveRound() {
       log(`Player 1 chose ${actions.p1}`);
       log(`Player 2 chose ${actions.p2}`);
+
+      // apply final states
+      setWizardState('p1', actions.p1 === 'Cast' || actions.p1 === 'Kamehameha' ? 'casting' : actions.p1.toLowerCase());
+      setWizardState('p2', actions.p2 === 'Cast' || actions.p2 === 'Kamehameha' ? 'casting' : actions.p2.toLowerCase());
+
+      if (actions.p1 === 'Cast' || actions.p1 === 'Kamehameha') {
+        spawnSpell('p1', actions.p1 === 'Kamehameha');
+      }
+      if (actions.p2 === 'Cast' || actions.p2 === 'Kamehameha') {
+        spawnSpell('p2', actions.p2 === 'Kamehameha');
+      }
 
       if (actions.p1 === 'Draw') mana.p1++;
       if (actions.p2 === 'Draw') mana.p2++;
