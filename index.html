@@ -1,1 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Wizard Duel</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #1e1e2f;
+      color: #f0f0f0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+    h1 {
+      margin-bottom: 20px;
+    }
+    .game-log {
+      width: 80%;
+      max-height: 300px;
+      overflow-y: auto;
+      background: #2c2c3c;
+      padding: 10px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+    .status {
+      margin: 10px;
+    }
+    button {
+      padding: 10px 20px;
+      margin-top: 10px;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Wizard Duel</h1>
+  <div class="status" id="mana-status"></div>
+  <div class="status" id="countdown"></div>
+  <div class="game-log" id="game-log"></div>
+  <button onclick="startRound()">Start Next Round</button>
+
+  <script>
+    let mana = { p1: 1, p2: 1 };
+    let actions = { p1: 'Block', p2: 'Block' };
+
+    function log(message) {
+      const logDiv = document.getElementById('game-log');
+      logDiv.innerHTML += `<div>> ${message}</div>`;
+      logDiv.scrollTop = logDiv.scrollHeight;
+    }
+
+    function updateManaStatus() {
+      document.getElementById('mana-status').textContent = `Player 1 Mana: ${mana.p1} | Player 2 Mana: ${mana.p2}`;
+    }
+
+    function startRound() {
+      actions = { p1: 'Block', p2: 'Block' }; // default if no input
+      document.getElementById('countdown').textContent = '3...';
+      setTimeout(() => document.getElementById('countdown').textContent = '2...', 500);
+      setTimeout(() => document.getElementById('countdown').textContent = '1...', 1000);
+      setTimeout(() => {
+        document.getElementById('countdown').textContent = 'Choose!';
+        window.addEventListener('keydown', handleKey);
+        setTimeout(() => {
+          window.removeEventListener('keydown', handleKey);
+          resolveRound();
+        }, 1500);
+      }, 1500);
+    }
+
+    function handleKey(e) {
+      switch(e.key) {
+        case 'w': actions.p1 = 'Draw'; break;
+        case 's': actions.p1 = 'Block'; break;
+        case 'd': if (mana.p1 > 0) { actions.p1 = 'Cast'; } break;
+        case 'a': if (mana.p1 >= 4) { actions.p1 = 'Kamehameha'; } break;
+
+        case 'ArrowUp': actions.p2 = 'Draw'; break;
+        case 'ArrowDown': actions.p2 = 'Block'; break;
+        case 'ArrowLeft': if (mana.p2 > 0) { actions.p2 = 'Cast'; } break;
+        case 'ArrowRight': if (mana.p2 >= 4) { actions.p2 = 'Kamehameha'; } break;
+      }
+    }
+
+    function resolveRound() {
+      log(`Player 1 chose ${actions.p1}`);
+      log(`Player 2 chose ${actions.p2}`);
+
+      if (actions.p1 === 'Draw') mana.p1++;
+      if (actions.p2 === 'Draw') mana.p2++;
+
+      if (actions.p1 === 'Cast') mana.p1--;
+      if (actions.p2 === 'Cast') mana.p2--;
+
+      if (actions.p1 === 'Kamehameha') mana.p1 -= 4;
+      if (actions.p2 === 'Kamehameha') mana.p2 -= 4;
+
+      let result = '';
+
+      if (actions.p1 === 'Kamehameha' && actions.p2 !== 'Kamehameha') {
+        result = 'Player 1 wins with a Kamehameha!';
+      } else if (actions.p2 === 'Kamehameha' && actions.p1 !== 'Kamehameha') {
+        result = 'Player 2 wins with a Kamehameha!';
+      } else if (actions.p1 === 'Cast' && actions.p2 === 'Draw') {
+        result = 'Player 1 wins!';
+      } else if (actions.p2 === 'Cast' && actions.p1 === 'Draw') {
+        result = 'Player 2 wins!';
+      } else if (actions.p1 === 'Cast' && actions.p2 === 'Cast') {
+        result = 'Spells cancel each other out!';
+      } else {
+        result = 'The round continues...';
+      }
+
+      log(result);
+      updateManaStatus();
+      document.getElementById('countdown').textContent = '';
+    }
+
+    updateManaStatus();
+  </script>
+</body>
+</html>
 
