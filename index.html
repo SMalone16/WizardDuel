@@ -56,32 +56,13 @@
     }
 
     #wizard1.casting {
-      animation: wizard1-cast 0.8s steps(4) forwards;
+      animation: wizard1-cast 0.8s steps(4) infinite;
     }
 
     #wizard2.idle { background: #444; }
     #wizard2.casting { background: #b00; }
     #wizard2.blocking { background: #06b; }
     #wizard2.drawing { background: #0b0; }
-
-    #wizard1 {
-      background-image: url('images/wizardsprite.png');
-      background-repeat: no-repeat;
-      background-position: 0 0;
-    }
-
-    @keyframes wizard1-cast {
-      0% { background-position:    0px 0; }
-      25% { background-position: -256px 0; }
-      50% { background-position: -512px 0; }
-      75% { background-position: -768px 0; }
-      100% { background-position:    0px 0; }
-    }
-
-    #wizard1.casting {
-      animation: wizard1-cast 0.8s steps(4) infinite;
-      background-size: 1024px 1024px;
-    }
 
     .spell {
       position: absolute;
@@ -134,7 +115,6 @@
   </div>
   <div class="status" id="mana-status"></div>
   <div class="status" id="countdown"></div>
-  <button id="next-round-btn" onclick="startRound()">Start Next Round</button>
   <button id="replay-btn" onclick="resetGame()" style="display:none">Replay</button>
 
   <script>
@@ -169,6 +149,7 @@
       document.getElementById('p1-action').textContent = '';
       document.getElementById('p2-action').textContent = '';
       document.getElementById('countdown').textContent = '3...';
+      updateManaStatus();
       setTimeout(() => document.getElementById('countdown').textContent = '2...', 500);
       setTimeout(() => document.getElementById('countdown').textContent = '1...', 1000);
       setTimeout(() => {
@@ -241,8 +222,9 @@
 
       if (result.includes('wins')) {
         gameOver = true;
-        document.getElementById('next-round-btn').style.display = 'none';
         document.getElementById('replay-btn').style.display = 'inline-block';
+      } else {
+        setTimeout(startRound, 2000);
       }
     }
 
@@ -255,12 +237,12 @@
       document.getElementById('p1-action').textContent = '';
       document.getElementById('p2-action').textContent = '';
       document.getElementById('countdown').textContent = '';
-      document.getElementById('next-round-btn').style.display = 'inline-block';
       document.getElementById('replay-btn').style.display = 'none';
       updateManaStatus();
     }
 
     updateManaStatus();
+    document.addEventListener('DOMContentLoaded', startRound);
   </script>
 </body>
 </html>
