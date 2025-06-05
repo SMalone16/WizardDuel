@@ -36,6 +36,25 @@
     .wizard.blocking { background: #06b; }
     .wizard.drawing { background: #0b0; }
 
+    #wizard1 {
+      background-image: url('images/wizardsprite.png');
+      background-repeat: no-repeat;
+      background-position: 0 0;
+    }
+
+    @keyframes wizard1-cast {
+      0% { background-position:    0px 0; }
+      25% { background-position: -256px 0; }
+      50% { background-position: -512px 0; }
+      75% { background-position: -768px 0; }
+      100% { background-position:    0px 0; }
+    }
+
+    #wizard1.casting {
+      animation: wizard1-cast 0.8s steps(4) infinite;
+      background-size: 1024px 1024px;
+    }
+
     .spell {
       position: absolute;
       top: 40px;
