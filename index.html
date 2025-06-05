@@ -134,11 +134,13 @@
   </div>
   <div class="status" id="mana-status"></div>
   <div class="status" id="countdown"></div>
-  <button onclick="startRound()">Start Next Round</button>
+  <button id="next-round-btn" onclick="startRound()">Start Next Round</button>
+  <button id="replay-btn" onclick="resetGame()" style="display:none">Replay</button>
 
   <script>
     let mana = { p1: 1, p2: 1 };
     let actions = { p1: 'Block', p2: 'Block' };
+    let gameOver = false;
 
     function updateManaStatus() {
       document.getElementById('mana-status').textContent = `Player 1 Mana: ${mana.p1} | Player 2 Mana: ${mana.p2}`;
@@ -160,6 +162,7 @@
     }
 
     function startRound() {
+      if (gameOver) return;
       actions = { p1: 'Block', p2: 'Block' }; // default if no input
       setWizardState('p1', 'idle');
       setWizardState('p2', 'idle');
@@ -179,6 +182,7 @@
     }
 
     function handleKey(e) {
+      if (gameOver) return;
       switch(e.key) {
         case 'w': actions.p1 = 'Draw'; setWizardState('p1','drawing'); break;
         case 's': actions.p1 = 'Block'; setWizardState('p1','blocking'); break;
@@ -233,6 +237,26 @@
       }
 
       document.getElementById('countdown').textContent = result;
+      updateManaStatus();
+
+      if (result.includes('wins')) {
+        gameOver = true;
+        document.getElementById('next-round-btn').style.display = 'none';
+        document.getElementById('replay-btn').style.display = 'inline-block';
+      }
+    }
+
+    function resetGame() {
+      mana = { p1: 1, p2: 1 };
+      actions = { p1: 'Block', p2: 'Block' };
+      gameOver = false;
+      setWizardState('p1', 'idle');
+      setWizardState('p2', 'idle');
+      document.getElementById('p1-action').textContent = '';
+      document.getElementById('p2-action').textContent = '';
+      document.getElementById('countdown').textContent = '';
+      document.getElementById('next-round-btn').style.display = 'inline-block';
+      document.getElementById('replay-btn').style.display = 'none';
       updateManaStatus();
     }
 
